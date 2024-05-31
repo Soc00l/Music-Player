@@ -1,72 +1,60 @@
 package com.example.musicplayer;
 
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
+import android.widget.ImageButton;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.tabs.TabLayout;
+
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class LocalMusicActivity extends AppCompatActivity {
+
+    private ArrayList<Fragment> FragmentList = new ArrayList<Fragment>() ;
+    private MusicLoader musicLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.localmusic);
-        if (null == savedInstanceState) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.FragmentContainerView, SingleSongFragment.newInstance())
-                    .commit();
-        }
-        Button song = findViewById(R.id.song);
-        song.setOnClickListener(new View.OnClickListener()
-        {
-
+//        添加ViewPager内容
+        ArrayList<Song> Songlist = new ArrayList<>();
+        musicLoader = new MusicLoader(this.getApplicationContext());
+        Songlist = musicLoader.getMusic();
+        FragmentList.add(SingleSongFragment.newInstance(Songlist));
+        FragmentList.add(SingerFragment.newInstance("",""));
+        FragmentList.add(AlbumFragment.newInstance("",""));
+        FragmentList.add(FolderFragment.newInstance("",""));
+        //返回按钮
+        ImageButton back = findViewById(R.id.back);
+        back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(LocalMusicActivity.this,"歌曲",Toast.LENGTH_LONG).show();
+                Intent intent = new Intent();
+                intent.setClass(LocalMusicActivity.this,MainActivity.class);
+                startActivity(intent);
             }
         });
+        TabLayout tabLayout = findViewById(R.id.tab_layout);
+        ViewPager viewPager = findViewById(R.id.view_pager);
+        viewPager.setAdapter(new MyFragmentPagerAdapter(getSupportFragmentManager(),FragmentList));
 
-        Button album = findViewById(R.id.album);
-        album.setOnClickListener(new View.OnClickListener()
-        {
-
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(LocalMusicActivity.this,"专辑",Toast.LENGTH_LONG).show();
-            }
-        });
-
-        Button singer = findViewById(R.id.singer);
-        singer.setOnClickListener(new View.OnClickListener()
-        {
-
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(LocalMusicActivity.this,"歌手",Toast.LENGTH_LONG).show();
-            }
-        });
-
-        Button folder = findViewById(R.id.folder);
-        folder.setOnClickListener(new View.OnClickListener()
-        {
-
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(LocalMusicActivity.this,"文件夹",Toast.LENGTH_LONG).show();
-            }
-        });
+        tabLayout.setupWithViewPager(viewPager);
     }
-
-
 
 
 }
