@@ -128,7 +128,7 @@
         android:background="@android:color/transparent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/loved"
+        android:src="@drawable/love"
         android:layout_weight="1"/>
     <ImageButton
         android:id="@+id/playList"

@@ -1,17 +1,17 @@
 package com.example.musicplayer;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.provider.ContactsContract;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -31,10 +31,17 @@ public class PlayerActivity extends AppCompatActivity {
 
     private String last ;//上一个页面
     private  Song song;
+
     private MusicService musicService;
     private boolean isServiceBound = false;
+    private  TextView name;
+
+    private TextView singer;
 
     private ImageButton isLove;
+
+    private BroadcastReceiver songChangedReceiver;
+
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -48,6 +55,7 @@ public class PlayerActivity extends AppCompatActivity {
             if (song != null) {
                 musicService.playMusic(song);
             }
+            UpdateUI();
         }
 
         @Override
@@ -65,31 +73,43 @@ public class PlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.player);
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("song")) {
             this.song = intent.getParcelableExtra("song");
-            TextView name = findViewById(R.id.textViewSongName);
-            name.setText(song.getName());
-            TextView singer = findViewById(R.id.textViewSingerName);
-            singer.setText(song.getSinger());
+            name = findViewById(R.id.textViewSongName);
+            singer = findViewById(R.id.textViewSingerName);
         }
         this.last = intent.getStringExtra("class");
-        if(!isServiceBound) {
+        if (!isServiceBound) {
             bindMusicService();
         }
-        if(intent.hasExtra("name"))
-        {
+        if (intent.hasExtra("name")) {
             TextView name = findViewById(R.id.textViewSongName);
             name.setText(intent.getStringExtra("name"));
             TextView singer = findViewById(R.id.textViewSingerName);
             singer.setText(intent.getStringExtra("singer"));
-            boolean IsPlay = intent.getBooleanExtra("Isplay",true);
+            boolean IsPlay = intent.getBooleanExtra("Isplay", true);
             this.play = IsPlay;
         }
-        //收起按钮
+        songChangedReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (MusicService.ACTION_SONG_CHANGED.equals(intent.getAction())) {
+                    song=  (Song) intent.getParcelableExtra("song");
+                    UpdateUI();
+                }
+            }
+        };
+        IntentFilter filter = new IntentFilter(MusicService.ACTION_SONG_CHANGED);
+        registerReceiver(songChangedReceiver, filter);
+
+
+
+    //收起按钮
         ImageButton down = findViewById(R.id.down);
         down.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,7 +142,7 @@ public class PlayerActivity extends AppCompatActivity {
         previous.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                musicService.playPreviousSong();
             }
         });
         //播放按钮
@@ -153,8 +173,10 @@ public class PlayerActivity extends AppCompatActivity {
         next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                    musicService.playNextSong();
+                    UpdateUI();
             }
+
         });
         //切换播放模式按钮
         ImageButton playMode = findViewById(R.id.playMode);
@@ -163,14 +185,17 @@ public class PlayerActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (mode.equals("order")) {
                     mode = "repeat";
+                    ChangeMode("repeat");
                     playMode.setImageResource(R.drawable._4gl_repeatonce2);
                 }
                 else if (mode.equals("repeat")) {
                     mode = "random";
+                    ChangeMode("random");
                     playMode.setImageResource(R.drawable._4gl_shuffle);
                 }
                 else if (mode.equals("random")) {
                     mode = "order";
+                    ChangeMode("order");
                     playMode.setImageResource(R.drawable._4gl_repeat2);
                 }
             }
@@ -196,7 +221,8 @@ public class PlayerActivity extends AppCompatActivity {
         list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(PlayerActivity.this, LocalMusicActivity.class);
+                startActivity(intent);
             }
         });
         //进度条
@@ -221,6 +247,7 @@ public class PlayerActivity extends AppCompatActivity {
                  }
              }
          });
+
     }
     @SuppressLint("HandlerLeak")
     public static Handler handler=new Handler(){//创建消息处理器对象
@@ -286,6 +313,20 @@ public class PlayerActivity extends AppCompatActivity {
             } else {
                 isLove.setImageResource(R.drawable.love);
             }
+        }
+    }
+    private void ChangeMode(String mode)
+    {
+        musicService.ChangeMode(mode);
+    }
+    private void UpdateUI()
+    {
+        name.setText(song.getName());
+        singer.setText(song.getSinger());
+        boolean isFavorite = musicService.checkIfFavoriteAsync(song);
+        if(isFavorite)
+        {
+            isLove.setImageResource(R.drawable.loved);
         }
     }
 

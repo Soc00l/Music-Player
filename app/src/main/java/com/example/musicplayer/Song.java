@@ -5,6 +5,8 @@ import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 
+import java.util.Objects;
+
 public class Song implements Parcelable {
     private String name;
     private String path;
@@ -32,6 +34,7 @@ public class Song implements Parcelable {
         name = in.readString();
         path = in.readString();
         singer = in.readString();
+        album = in.readString();
     }
 
     public static final Creator<Song> CREATOR = new Creator<Song>() {
@@ -88,5 +91,21 @@ public class Song implements Parcelable {
              dest.writeString(name);
              dest.writeString(path);
              dest.writeString(singer);
+             dest.writeString(album);
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Song song = (Song) o;
+        return Objects.equals(name, song.name) &&
+                Objects.equals(path, song.path) &&
+                Objects.equals(singer, song.singer) &&
+                Objects.equals(album, song.album);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, path, singer, album);
     }
 }

@@ -10,6 +10,8 @@ import android.os.IBinder;
 import android.os.Message;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -24,14 +26,20 @@ public class MusicService extends Service {
 
     private boolean IsPlaying=true;
     private Song song;
-
+    private  String mode = "order";
+    private List<Song> SongList;
     public AppDatabase database;
+
+    public static final String ACTION_SONG_CHANGED = "com.example.musicplayer.ACTION_SONG_CHANGED";
     @Override
     public void onCreate(){
         super.onCreate();
         //创建音乐播放器对象
         player=new MediaPlayer();
         this.database = DatabaseHelper.getDatabase(getApplicationContext());
+        MusicLoader musicLoader = new MusicLoader(getApplicationContext());
+        //获取歌单
+        this.SongList = musicLoader.getMusic();
     }
 
 
@@ -51,16 +59,69 @@ public class MusicService extends Service {
             String path = song.getPath();
             Uri uri = Uri.parse(path);
             // 重置音乐播放器
-            player.reset();
+            if (player == null) {
+                player = new MediaPlayer();
+            } else {
+                player.reset(); // 重置音乐播放器
+            }
             // 加载多媒体文件
             player.setDataSource(getApplicationContext(), uri);
             player.prepare();
             player.start(); // 播放音乐
             addTimer(); // 添加计时器
+            player.setOnCompletionListener(mp -> playNextSong());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+    public void ChangeMode(String mode)
+    {
+        this.mode = mode;
+    }
+    public void playNextSong() {
+        if (SongList == null || SongList.isEmpty()) {
+            return;
+        }
+        switch (mode)
+        {
+            //顺序播放
+            case "order":
+            {
+                int position = SongList.indexOf(song);
+                if(position!=SongList.size()-1)
+                {
+                    playMusic(SongList.get(position+1));
+                    this.song = SongList.get(position+1);
+                }
+                else
+                {
+                    this.song = SongList.get(0);
+                    playMusic(SongList.get(0));
+
+                }
+                break;
+            }
+            //随机播放
+            case "random":
+            {
+                Random random = new Random();
+                int position = random.nextInt(SongList.size());
+                playMusic(SongList.get(position));
+                this.song = SongList.get(position);
+                break;
+            }
+            //循环播放
+            case "repeat":
+            {
+                playMusic(song);
+            }
+        }
+        Intent intent = new Intent(ACTION_SONG_CHANGED);
+        intent.putExtra("song", song);
+        sendBroadcast(intent);
+    }
+
     //收藏
     public AtomicBoolean toggleFavoriteAsync(Song song, Runnable callback) {
         AtomicBoolean result = new AtomicBoolean(false);
@@ -97,7 +158,18 @@ public class MusicService extends Service {
             });
         });
     }
-
+    //获取上一首歌
+    public void playPreviousSong() {
+        RecentlyPlayedDao recentlyPlayedDao = database.recentlyPlayedDao();
+        recentlyPlayedDao.getPreviousSongAsync(previousSong -> {
+            if (previousSong != null) {
+                playMusic(previousSong);
+                Intent intent = new Intent(ACTION_SONG_CHANGED);
+                intent.putExtra("song", previousSong);
+                sendBroadcast(intent);
+            }
+        });
+    }
     //添加计时器用于设置音乐播放器中的播放进度条
     public void addTimer(){
         //如果timer不存在，也就是没有引用实例
@@ -176,6 +248,8 @@ public class MusicService extends Service {
     {
         return IsPlaying;
     }
+
+
     @Override
     public IBinder onBind(Intent intent) {
         return new MusicControl();
