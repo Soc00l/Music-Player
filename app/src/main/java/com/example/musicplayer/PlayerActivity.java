@@ -41,7 +41,7 @@ public class PlayerActivity extends AppCompatActivity {
     private ImageButton isLove;
 
     private BroadcastReceiver songChangedReceiver;
-
+    private int position;//保存播放进度
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -55,6 +55,7 @@ public class PlayerActivity extends AppCompatActivity {
             if (song != null) {
                 musicService.playMusic(song);
             }
+            musicService.seekTo(position);
             UpdateUI();
         }
 
@@ -83,7 +84,15 @@ public class PlayerActivity extends AppCompatActivity {
             name = findViewById(R.id.textViewSongName);
             singer = findViewById(R.id.textViewSingerName);
         }
-        this.last = intent.getStringExtra("class");
+        position = intent.getIntExtra("position", 0);
+        if(intent.hasExtra("class"))
+        {
+            this.last = intent.getStringExtra("class");
+        }
+        else {
+            last = "none";
+        }
+
         if (!isServiceBound) {
             bindMusicService();
         }
@@ -115,7 +124,6 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
-                intent.setClass(PlayerActivity.this,MainActivity.class);
                 switch (last)
                 {
                     case "MainActivity":
@@ -133,6 +141,8 @@ public class PlayerActivity extends AppCompatActivity {
                     case "RecentlyPlayedActivity":
                         intent.setClass(PlayerActivity.this,RecentlyPlayedActivity.class);
                         break;
+                    default:
+                        intent.setClass(PlayerActivity.this,MainActivity.class);
                 }
                 startActivity(intent);
             }

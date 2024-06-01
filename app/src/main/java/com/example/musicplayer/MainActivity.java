@@ -188,6 +188,15 @@ public class MainActivity extends AppCompatActivity  {
                 }
             }
         });
+        ImageButton list = findViewById(R.id.list);
+        list.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this,LocalMusicActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
 

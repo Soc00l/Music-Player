@@ -9,6 +9,7 @@
         android:maxSdkVersion="32" />
 
     <application
+        android:name=".App"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -20,9 +21,6 @@
         tools:targetApi="31">
         <activity
             android:name=".RecentlyPlayedActivity"
-            android:exported="false" />
-        <activity
-            android:name=".RecentPlayedActivity"
             android:exported="false" />
         <activity
             android:name=".FavoriteActivity"

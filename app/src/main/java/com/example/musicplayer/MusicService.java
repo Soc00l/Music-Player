@@ -1,5 +1,8 @@
 package com.example.musicplayer;
 
+import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -8,6 +11,8 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
+
+import androidx.core.app.NotificationCompat;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,6 +36,12 @@ public class MusicService extends Service {
     public AppDatabase database;
 
     public static final String ACTION_SONG_CHANGED = "com.example.musicplayer.ACTION_SONG_CHANGED";
+    public static final String ACTION_PLAY_PAUSE = "com.example.musicplayer.ACTION_PLAY_PAUSE";
+    public static final String ACTION_OPEN_PLAYER = "com.example.musicplayer.ACTION_OPEN_PLAYER";
+    public static final String ACTION_PREVIOUS = "com.example.musicplayer.ACTION_PREVIOUS";
+    public static final String ACTION_NEXT = "com.example.musicplayer.ACTION_NEXT";
+
+
     @Override
     public void onCreate(){
         super.onCreate();
@@ -44,11 +55,83 @@ public class MusicService extends Service {
 
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && intent.hasExtra("song")) {
-            Song song = intent.getParcelableExtra("song");
-            playMusic(song);
+        if (intent != null) {
+            // 检查是否有歌曲信息并播放
+            if (intent.hasExtra("song")) {
+                Song song = intent.getParcelableExtra("song");
+                if (song != null) {
+                    playMusic(song);
+                }
+            }
+
+            // 处理其他动作
+            String action = intent.getAction();
+            if (action != null) {
+                switch (action) {
+                        case ACTION_PLAY_PAUSE:
+                            if (IsPlaying) {
+                                pausePlay();
+                            } else {
+                                continuePlay();
+                            }
+                            break;
+                        case ACTION_PREVIOUS:
+                            playPreviousSong();
+                            break;
+                        case ACTION_NEXT:
+                            playNextSong();
+                            break;
+                        case ACTION_OPEN_PLAYER:
+                            Intent playerIntent = new Intent(this, PlayerActivity.class);
+                            playerIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            playerIntent.putExtra("song", song);
+                            playerIntent.putExtra("position", player.getCurrentPosition());
+                            startActivity(playerIntent);
+                            break;
+                        default:
+                            if (intent.hasExtra("song")) {
+                                Song song = intent.getParcelableExtra("song");
+                                playMusic(song);
+                            }
+                            break;
+                }
+            }
         }
         return START_NOT_STICKY;
+    }
+
+    @SuppressLint("ForegroundServiceType")
+    private void showNotification(Song song) {
+        Intent playPauseIntent = new Intent(this, MusicService.class);
+        playPauseIntent.setAction(ACTION_PLAY_PAUSE);
+        PendingIntent playPausePendingIntent = PendingIntent.getService(this, 0, playPauseIntent,  PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        Intent previousIntent = new Intent(this, MusicService.class);
+        previousIntent.setAction(ACTION_PREVIOUS);
+        PendingIntent previousPendingIntent = PendingIntent.getService(this, 0, previousIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        Intent nextIntent = new Intent(this, MusicService.class);
+        nextIntent.setAction(ACTION_NEXT);
+        PendingIntent nextPendingIntent = PendingIntent.getService(this, 0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        Intent openPlayerIntent = new Intent(this, MusicService.class);
+        openPlayerIntent.setAction(ACTION_OPEN_PLAYER);
+        openPlayerIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent openPlayerPendingIntent = PendingIntent.getService(this, 0, openPlayerIntent,  PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+
+        @SuppressLint("NotificationTrampoline") Notification notification = new NotificationCompat.Builder(this, App.CHANNEL_ID)
+                .setContentTitle(song.getName())
+                .setContentText(song.getSinger())
+                .setSmallIcon(R.drawable.music)
+                .addAction(R.drawable.backward_step_solid, "Previous", previousPendingIntent)
+                .addAction(IsPlaying ? R.drawable.pause_solid : R.drawable.note_pause, "Play/Pause", playPausePendingIntent)
+                .addAction(R.drawable.forward_step_solid, "Next", nextPendingIntent)
+                .setContentIntent(openPlayerPendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle())
+                .build();
+
+        startForeground(123, notification);
     }
 
     public void playMusic(Song song) {
@@ -69,6 +152,7 @@ public class MusicService extends Service {
             player.prepare();
             player.start(); // 播放音乐
             addTimer(); // 添加计时器
+            showNotification(song); // 显示通知
             player.setOnCompletionListener(mp -> playNextSong());
         } catch (IOException e) {
             e.printStackTrace();
@@ -207,22 +291,26 @@ public class MusicService extends Service {
         public void pausePlay() {
             player.pause();
             IsPlaying = false;
+            showNotification(song);
         }
 
         public void continuePlay() {
             player.start();
             IsPlaying = true;
+            showNotification(song);
         }
 
     }
     public void pausePlay() {
         player.pause();
         IsPlaying = false;//暂停播放音乐
+        showNotification(song);
     }
 
     public void continuePlay() {
         player.start();
         IsPlaying = true;//继续播放音乐
+        showNotification(song);
     }
 
     public void seekTo(int progress) {
