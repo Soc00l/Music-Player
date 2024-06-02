@@ -30,7 +30,6 @@ public class SingleSongFragment extends Fragment {
 
     private  ArrayList<Song> list ;
 
-    // TODO: Rename and change types of parameters
     private RecyclerView recyclerView;
     public SingleSongFragment() {
 
@@ -62,6 +61,11 @@ public class SingleSongFragment extends Fragment {
         recyclerView = view.findViewById(R.id.songRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
         recyclerView.setAdapter(new RecyclerAdapter(list));
+        view.setOnApplyWindowInsetsListener((v, insets) -> {
+            int bottomInset = insets.getSystemWindowInsetBottom();
+            recyclerView.setPadding(0, 0, 0, bottomInset);
+            return insets;
+        });
         return view;
     }
 }

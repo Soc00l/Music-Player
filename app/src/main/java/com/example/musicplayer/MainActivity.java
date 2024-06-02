@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity  {
             MusicService.MusicControl binder = (MusicService.MusicControl) service;
             musicService = binder.getService();
             isServiceBound = true;
+            IsPause = !musicService.IsPlaying();
             updateUI();
         }
 
@@ -93,12 +96,11 @@ public class MainActivity extends AppCompatActivity  {
         bindMusicService();
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-
+        //触发歌曲扫描
+        triggerMediaScan("/storage/emulated/0/Music");
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-
-
             return insets;
         });
 
@@ -115,7 +117,6 @@ public class MainActivity extends AppCompatActivity  {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE);
             } else {
                 // 权限已经被授予，加载音乐
-
             }
         }
 
@@ -180,6 +181,7 @@ public class MainActivity extends AppCompatActivity  {
                     intent.putExtra("name",song.getName());
                     intent.putExtra("singer",song.getSinger());
                     intent.putExtra("class","MainActivity");
+                    intent.putExtra("position",musicService.getProgress());
                     intent.putExtra("Isplay",!IsPause);
                     startActivity(intent);
                 }
@@ -197,6 +199,15 @@ public class MainActivity extends AppCompatActivity  {
                 startActivity(intent);
             }
         });
+    }
+    public void triggerMediaScan(String filePath) {
+        MediaScannerConnection.scanFile(getApplicationContext(), new String[]{filePath}, null,
+                new MediaScannerConnection.OnScanCompletedListener() {
+                    public void onScanCompleted(String path, Uri uri) {
+                        System.out.println("Scanned " + path + ":");
+                        System.out.println("-> uri=" + uri);
+                    }
+                });
     }
 
 

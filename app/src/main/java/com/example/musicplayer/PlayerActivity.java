@@ -11,8 +11,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +22,7 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlayerActivity extends AppCompatActivity {
@@ -41,7 +44,7 @@ public class PlayerActivity extends AppCompatActivity {
     private ImageButton isLove;
 
     private BroadcastReceiver songChangedReceiver;
-    private int position;//保存播放进度
+    private int position=0;//保存播放进度
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -56,6 +59,7 @@ public class PlayerActivity extends AppCompatActivity {
                 musicService.playMusic(song);
             }
             musicService.seekTo(position);
+            song = musicService.getCurrentSong();
             UpdateUI();
         }
 
@@ -79,10 +83,10 @@ public class PlayerActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.player);
         Intent intent = getIntent();
+        name = findViewById(R.id.textViewSongName);
+        singer = findViewById(R.id.textViewSingerName);
         if (intent != null && intent.hasExtra("song")) {
             this.song = intent.getParcelableExtra("song");
-            name = findViewById(R.id.textViewSongName);
-            singer = findViewById(R.id.textViewSingerName);
         }
         position = intent.getIntExtra("position", 0);
         if(intent.hasExtra("class"))
@@ -102,7 +106,9 @@ public class PlayerActivity extends AppCompatActivity {
             TextView singer = findViewById(R.id.textViewSingerName);
             singer.setText(intent.getStringExtra("singer"));
             boolean IsPlay = intent.getBooleanExtra("Isplay", true);
+            this.position = intent.getIntExtra("position",0);
             this.play = IsPlay;
+
         }
         songChangedReceiver = new BroadcastReceiver() {
             @Override
@@ -231,10 +237,10 @@ public class PlayerActivity extends AppCompatActivity {
         list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(PlayerActivity.this, LocalMusicActivity.class);
-                startActivity(intent);
+                showPopupMenu(v);
             }
         });
+
         //进度条
          seekBar = findViewById(R.id.seekBar);
          progress = findViewById(R.id.progress);
@@ -338,6 +344,52 @@ public class PlayerActivity extends AppCompatActivity {
         {
             isLove.setImageResource(R.drawable.loved);
         }
+    }
+    private void showPopupMenu(View view) {
+        PopupMenu popupMenu = new PopupMenu(this, view);
+        popupMenu.getMenuInflater().inflate(R.menu.menu_song_options, popupMenu.getMenu());
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                int id = item.getItemId();
+                if (id == R.id.action_add_to_playlist) {
+                    // 处理“添加到歌单”操作
+                    addToPlaylist(song);
+                    return true;
+                } else if (id == R.id.action_view_album) {
+                    // 处理“查看专辑”操作
+                    viewAlbum(song.getAlbum());
+                    return true;
+                } else if (id == R.id.action_view_artist) {
+                    // 处理“查看歌手”操作
+                    viewArtist(song.getSinger());
+                    return true;
+                }
+                return false;
+            }
+        });
+        popupMenu.show();
+    }
+    private void addToPlaylist(Song song) {
+        // 实现添加到歌单的逻辑
+    }
+
+    private void viewAlbum(String albumName) {
+        MusicLoader musicLoader = new MusicLoader(this);
+        ArrayList<Song> albumSongs = musicLoader.getSongsByAlbum(albumName);
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra("title", albumName);
+        intent.putParcelableArrayListExtra("songs", albumSongs);
+        startActivity(intent);
+    }
+
+    private void viewArtist(String artistName) {
+        MusicLoader musicLoader = new MusicLoader(this);
+        ArrayList<Song> artistSongs = musicLoader.getSongsBySinger(artistName);
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra("title", artistName);
+        intent.putParcelableArrayListExtra("songs", artistSongs);
+        startActivity(intent);
     }
 
 }

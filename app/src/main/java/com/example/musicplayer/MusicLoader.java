@@ -3,26 +3,15 @@ package com.example.musicplayer;
 import static com.example.musicplayer.SongSorter.sortSongsByName;
 
 import android.annotation.SuppressLint;
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
-
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.nio.charset.StandardCharsets;
-import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Locale;
+
 
 public class MusicLoader {
     private Context context;
@@ -77,15 +66,36 @@ public class MusicLoader {
         sortSongsByName(songs);
         return songs;
     }
+    public ArrayList<Song> getSongsByAlbum(String albumName) {
+        ArrayList<Song> allSongs = getMusic();
+        ArrayList<Song> albumSongs = new ArrayList<>();
+        for (Song song : allSongs) {
+            if (song.getAlbum().equals(albumName)) {
+                albumSongs.add(song);
+            }
+        }
+        return albumSongs;
+    }
 
-//    public void loadMusic() {
-//
+    public ArrayList<Song> getSongsBySinger(String singerName) {
+        ArrayList<Song> allSongs = getMusic();
+        ArrayList<Song> singerSongs = new ArrayList<>();
+        for (Song song : allSongs) {
+            if (song.getSinger().equals(singerName)) {
+                singerSongs.add(song);
+            }
+        }
+        return singerSongs;
+    }
+
+//    public ArrayList<Song> loadMusic() {
+//        ArrayList<Song> songs = new ArrayList<>();
 //        @SuppressLint("SdCardPath") File musicPath = new File("/sdcard/Music");
 //
 //        // 检查目录是否存在和可读
 //        if (!musicPath.exists() || !musicPath.isDirectory()) {
 //            System.out.println("目录不存在或不可读: " + musicPath.getAbsolutePath());
-//            return;
+//            return null;
 //        }
 //
 //        // 文件过滤器，筛选MP3文件
@@ -102,17 +112,28 @@ public class MusicLoader {
 //        // 检查文件列表是否为空
 //        if (fs == null) {
 //            System.out.println("无法读取目录内容或没有匹配的文件: " + musicPath.getAbsolutePath());
-//            return;
+//            return null;
 //        }
-//
-//        // 输出MP3文件列表
-//        for (String file : fs) {
+//        for (String fileName : fs) {
 //            try {
-//                // 打印文件名和路径
-//                System.out.println(new String(file.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
+//                Song song = new Song();
+//
+//
+//                int dashIndex = fileName.lastIndexOf('-');
+//
+//                if (dashIndex != -1 && dashIndex < fileName.length() - 1) {
+//                    song.setSinger(fileName.substring(dashIndex + 1).trim());
+//                    String newTitle = fileName.substring(0, dashIndex).trim();
+//                    song.setName(newTitle);
+//                } else {
+//                    song.setSinger("未知歌手");
+//                }
+//                song.setPath(new File(musicPath, fileName).getAbsolutePath());
+//                songs.add(song);
 //            } catch (Exception e) {
-//                System.out.println("文件名处理错误: " + file);
+//                System.out.println("Error processing file: " + fileName);
 //            }
 //        }
+//                  return  songs;
 //    }
 }

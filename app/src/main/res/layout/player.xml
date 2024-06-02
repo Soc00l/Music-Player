@@ -22,7 +22,8 @@
         android:background="@android:color/transparent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_launcher_background"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/cd"
         android:layout_below="@id/down"/>
 
     <TextView

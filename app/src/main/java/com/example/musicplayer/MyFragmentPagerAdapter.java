@@ -11,7 +11,7 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
     private ArrayList<Fragment> list = new ArrayList<>();
     public MyFragmentPagerAdapter(@NonNull FragmentManager fm,ArrayList<Fragment> list) {
-        super(fm);
+        super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         this.list = list;
     }
 

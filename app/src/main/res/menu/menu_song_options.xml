@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_add_to_playlist"
+        android:title="添加到歌单" />
+    <item
+        android:id="@+id/action_view_album"
+        android:title="查看专辑" />
+    <item
+        android:id="@+id/action_view_artist"
+        android:title="查看歌手" />
+</menu>

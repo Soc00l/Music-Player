@@ -20,6 +20,9 @@
         android:theme="@style/Theme.MusicPlayer"
         tools:targetApi="31">
         <activity
+            android:name=".DetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".RecentlyPlayedActivity"
             android:exported="false" />
         <activity

@@ -3,22 +3,14 @@ package com.example.musicplayer;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
-
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
-
 import com.google.android.material.tabs.TabLayout;
-
 import java.util.ArrayList;
-import java.util.List;
+
 
 
 public class LocalMusicActivity extends AppCompatActivity {
@@ -36,8 +28,8 @@ public class LocalMusicActivity extends AppCompatActivity {
         musicLoader = new MusicLoader(this.getApplicationContext());
         Songlist = musicLoader.getMusic();
         FragmentList.add(SingleSongFragment.newInstance(Songlist));
-        FragmentList.add(SingerFragment.newInstance("",""));
-        FragmentList.add(AlbumFragment.newInstance("",""));
+        FragmentList.add(SingerFragment.newInstance(Songlist));
+        FragmentList.add(AlbumFragment.newInstance(Songlist));
         FragmentList.add(FolderFragment.newInstance("",""));
         //返回按钮
         ImageButton back = findViewById(R.id.back);
@@ -52,9 +44,6 @@ public class LocalMusicActivity extends AppCompatActivity {
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(new MyFragmentPagerAdapter(getSupportFragmentManager(),FragmentList));
-
         tabLayout.setupWithViewPager(viewPager);
     }
-
-
 }

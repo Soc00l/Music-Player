@@ -336,7 +336,10 @@ public class MusicService extends Service {
     {
         return IsPlaying;
     }
-
+    public  int getProgress()
+    {
+        return player.getCurrentPosition();
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
