@@ -1,4 +1,4 @@
-package com.example.musicplayer;
+package com.example.musicplayer.Fragment;
 
 import android.os.Bundle;
 
@@ -6,36 +6,22 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 
-import java.text.Collator;
+import com.example.musicplayer.R;
+import com.example.musicplayer.Adapter.RecyclerAdapter;
+import com.example.musicplayer.Entity.Song;
+
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link SingleSongFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class SingleSongFragment extends Fragment {
-
-
     private  ArrayList<Song> list ;
-
     private RecyclerView recyclerView;
     public SingleSongFragment() {
 
     }
-
-
     public static SingleSongFragment newInstance(ArrayList<Song> list) {
         SingleSongFragment fragment = new SingleSongFragment();
         Bundle args = new Bundle();

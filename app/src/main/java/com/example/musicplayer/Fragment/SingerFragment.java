@@ -1,4 +1,4 @@
-package com.example.musicplayer;
+package com.example.musicplayer.Fragment;
 
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
@@ -8,6 +8,11 @@ import android.view.ViewGroup;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.musicplayer.R;
+import com.example.musicplayer.Adapter.SingerAdapter;
+import com.example.musicplayer.Entity.Song;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +56,11 @@ public class SingerFragment extends Fragment {
         singerMap = groupSongsBySinger(songs);
         singerAdapter = new SingerAdapter(singerMap, getContext());
         recyclerView.setAdapter(singerAdapter);
-
+        view.setOnApplyWindowInsetsListener((v, insets) -> {
+            int bottomInset = insets.getSystemWindowInsetBottom();
+            recyclerView.setPadding(0, 0, 0, bottomInset);
+            return insets;
+        });
         return view;
     }
 

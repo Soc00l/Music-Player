@@ -1,7 +1,6 @@
-package com.example.musicplayer;
+package com.example.musicplayer.Adapter;
 
 import android.content.Intent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +8,10 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.musicplayer.Entity.Song;
+import com.example.musicplayer.PlayerActivity;
+import com.example.musicplayer.R;
 
 import java.util.List;
 

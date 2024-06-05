@@ -1,4 +1,6 @@
-package com.example.musicplayer;
+package com.example.musicplayer.Util;
+
+import com.example.musicplayer.Entity.Song;
 
 import java.text.Collator;
 import java.util.ArrayList;

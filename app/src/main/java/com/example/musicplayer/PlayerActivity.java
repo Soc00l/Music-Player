@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -11,8 +12,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.text.InputType;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.SeekBar;
@@ -20,10 +24,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.musicplayer.Entity.FolderSong;
+import com.example.musicplayer.Entity.Song;
+import com.example.musicplayer.Util.DatabaseHelper;
+import com.example.musicplayer.Util.MusicLoader;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class PlayerActivity extends AppCompatActivity {
     private  String mode = "order";
@@ -33,7 +45,7 @@ public class PlayerActivity extends AppCompatActivity {
     private  boolean play=true;
 
     private String last ;//上一个页面
-    private  Song song;
+    private Song song;
 
     private MusicService musicService;
     private boolean isServiceBound = false;
@@ -45,7 +57,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     private BroadcastReceiver songChangedReceiver;
     private int position=0;//保存播放进度
-
+    private AppDatabase appDatabase;
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -83,6 +95,7 @@ public class PlayerActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.player);
         Intent intent = getIntent();
+        appDatabase = DatabaseHelper.getDatabase(getApplicationContext());
         name = findViewById(R.id.textViewSongName);
         singer = findViewById(R.id.textViewSingerName);
         if (intent != null && intent.hasExtra("song")) {
@@ -371,9 +384,96 @@ public class PlayerActivity extends AppCompatActivity {
         popupMenu.show();
     }
     private void addToPlaylist(Song song) {
-        // 实现添加到歌单的逻辑
+        showAddToPlaylistDialog(song);
     }
 
+    private void showAddToPlaylistDialog(Song song) {
+        MusicLoader musicLoader = new MusicLoader(this);
+        List<String> folderNames = musicLoader.getAllFolderNames();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("选择歌单");
+
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
+        arrayAdapter.addAll(folderNames);
+        arrayAdapter.add("新建歌单");
+
+        builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String selected = arrayAdapter.getItem(which);
+                if (selected.equals("新建歌单")) {
+                    showCreateNewPlaylistDialog(song);
+                } else {
+                    addSongToFolder(song, selected);
+                }
+            }
+        });
+        builder.show();
+    }
+
+    private void showCreateNewPlaylistDialog(Song song) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("新建歌单");
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String folderName = input.getText().toString();
+                if (!folderName.isEmpty()) {
+                    MusicLoader musicLoader = new MusicLoader(getApplicationContext());
+                    List<String> existingFolders = musicLoader.getAllFolderNames();
+                    if (existingFolders.contains(folderName)) {
+                        Toast.makeText(getApplicationContext(), "歌单已存在", Toast.LENGTH_SHORT).show();
+                    } else {
+                        addSongToFolder(song, folderName);
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(), "歌单名不能为空", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    private void addSongToFolder(Song song, String folderName) {
+        FolderSong folderSong = new FolderSong();
+        folderSong.setFolderName(folderName);
+        folderSong.setSongName(song.getName());
+        folderSong.setArtist(song.getSinger());
+        folderSong.setAlbum(song.getAlbum());
+        folderSong.setPath(song.getPath());
+
+        // 检查歌曲是否已经在歌单中
+        appDatabase.folderSongDao().isSongInFolderAsync(folderName, song.getName(), song.getSinger(), new Consumer<Boolean>() {
+            @Override
+            public void accept(Boolean isInFolder) {
+                if (isInFolder) {
+                    runOnUiThread(() -> Toast.makeText(getApplicationContext(), "歌曲已在歌单中", Toast.LENGTH_SHORT).show());
+                } else {
+                    appDatabase.folderSongDao().insertAsync(folderSong, new Runnable() {
+                        @Override
+                        public void run() {
+                            runOnUiThread(() -> Toast.makeText(getApplicationContext(), "歌曲已添加到歌单 " + folderName, Toast.LENGTH_SHORT).show());
+                        }
+                    });
+                }
+            }
+        });
+
+    }
     private void viewAlbum(String albumName) {
         MusicLoader musicLoader = new MusicLoader(this);
         ArrayList<Song> albumSongs = musicLoader.getSongsByAlbum(albumName);

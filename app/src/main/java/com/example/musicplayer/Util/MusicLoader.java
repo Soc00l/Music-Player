@@ -1,24 +1,33 @@
-package com.example.musicplayer;
+package com.example.musicplayer.Util;
 
-import static com.example.musicplayer.SongSorter.sortSongsByName;
+import static com.example.musicplayer.Util.SongSorter.sortSongsByName;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Environment;
 import android.provider.MediaStore;
+
+import androidx.room.Room;
+
+import com.example.musicplayer.AppDatabase;
+import com.example.musicplayer.Entity.FolderSong;
+import com.example.musicplayer.Entity.Song;
+
 import java.io.File;
-import java.io.FilenameFilter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class MusicLoader {
     private Context context;
+    private AppDatabase appDatabase;
     private static final File PATH = Environment.getExternalStorageDirectory();
     public MusicLoader(Context context)
     {
         this.context = context;
+        appDatabase = Room.databaseBuilder(context, AppDatabase.class, "music-player-db").build();
     }
 
     public  ArrayList<Song> getMusic(){
@@ -88,6 +97,15 @@ public class MusicLoader {
         return singerSongs;
     }
 
+    public List<String> getAllFolderNames() {
+        return (List<String>) appDatabase.folderSongDao().getAllFolderNamesAsync();
+    }
+
+    // 获取所有歌单及其歌曲
+    public List<FolderSong> getAllFoldersWithSongs() {
+        List<FolderSong> folderSongs = (List<FolderSong>) appDatabase.folderSongDao().getAllFolderSongsAsync();
+        return folderSongs;
+    }
 //    public ArrayList<Song> loadMusic() {
 //        ArrayList<Song> songs = new ArrayList<>();
 //        @SuppressLint("SdCardPath") File musicPath = new File("/sdcard/Music");

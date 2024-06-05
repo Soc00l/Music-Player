@@ -1,9 +1,11 @@
-package com.example.musicplayer;
+package com.example.musicplayer.Dao;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
+
+import com.example.musicplayer.Entity.SongEntity;
 
 import java.util.List;
 import java.util.concurrent.Callable;

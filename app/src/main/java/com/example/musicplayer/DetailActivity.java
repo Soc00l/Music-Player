@@ -11,13 +11,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 
-import com.google.android.material.tabs.TabLayout;
+import com.example.musicplayer.Adapter.MyFragmentPagerAdapter;
+import com.example.musicplayer.Entity.Song;
+import com.example.musicplayer.Fragment.SingleSongFragment;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DetailActivity extends AppCompatActivity {
     private List<Song> list;
+    private int tab;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,6 +28,10 @@ public class DetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detail);
         Intent intent = getIntent();
         list = intent.getParcelableArrayListExtra("songs");
+        if(intent.hasExtra("tab"))
+        {
+            tab = intent .getIntExtra("tab",0);
+        }
         ArrayList<Fragment> fragmentArrayList = new ArrayList<>();
         Fragment SongFragment = SingleSongFragment.newInstance((ArrayList<Song>) list);
         fragmentArrayList.add(SongFragment);
@@ -34,11 +41,12 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
+                intent.putExtra("tab",tab);
                 intent.setClass(DetailActivity.this,LocalMusicActivity.class);
                 startActivity(intent);
             }
         });
-        //显示专辑/歌手名
+        //显示专辑/歌手名/歌单名
         TextView textView = findViewById(R.id.tv_album_name);
         textView.setText(intent.getStringExtra("title"));
         ViewPager viewPager = findViewById(R.id.detail_view_pager);

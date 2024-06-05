@@ -14,6 +14,13 @@ import android.os.Message;
 
 import androidx.core.app.NotificationCompat;
 
+import com.example.musicplayer.Dao.RecentlyPlayedDao;
+import com.example.musicplayer.Entity.RecentlyPlayedEntity;
+import com.example.musicplayer.Entity.Song;
+import com.example.musicplayer.Entity.SongEntity;
+import com.example.musicplayer.Util.DatabaseHelper;
+import com.example.musicplayer.Util.MusicLoader;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;

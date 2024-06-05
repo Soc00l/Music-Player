@@ -1,4 +1,4 @@
-package com.example.musicplayer;
+package com.example.musicplayer.Adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +8,11 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.musicplayer.DetailActivity;
+import com.example.musicplayer.Entity.Song;
+import com.example.musicplayer.R;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +48,7 @@ public class SingerAdapter extends RecyclerView.Adapter<SingerAdapter.SingerView
             public void onClick(View v) {
                 Intent intent = new Intent(context, DetailActivity.class);
                 intent.putExtra("title", singerName);
+                intent.putExtra("tab",1);
                 intent.putParcelableArrayListExtra("songs", new ArrayList<>(songs));
                 context.startActivity(intent);
             }
