@@ -37,6 +37,7 @@ public class RecentlyPlayedAdapter extends RecyclerView.Adapter<RecentlyPlayedAd
         Song song = songs.get(position);
         holder.nameTextView.setText(song.getName());
         holder.singerTextView.setText(song.getSinger());
+        holder.number.setText(String.valueOf(position+1));
         holder.itemView.setOnClickListener(view -> {
             Intent intent = new Intent(context, PlayerActivity.class);
             intent.putExtra("song", song);
@@ -53,9 +54,10 @@ public class RecentlyPlayedAdapter extends RecyclerView.Adapter<RecentlyPlayedAd
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView nameTextView;
         TextView singerTextView;
-
+        TextView number;
         ViewHolder(View itemView) {
             super(itemView);
+            number = itemView.findViewById(R.id.number);
             nameTextView = itemView.findViewById(R.id.song_name);
             singerTextView = itemView.findViewById(R.id.song_singer);
         }

@@ -26,6 +26,14 @@ public class Song implements Parcelable {
         this.singer = singer;
         this.path = path;
     }
+
+    public Song(String name, String path, String singer, String album) {
+        this.name = name;
+        this.path = path;
+        this.singer = singer;
+        this.album = album;
+    }
+
     public Song()
     {
 

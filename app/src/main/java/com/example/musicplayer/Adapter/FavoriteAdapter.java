@@ -37,6 +37,7 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.Favori
         Song song = favoriteSongs.get(position);
         holder.songTitle.setText(song.getName());
         holder.songSinger.setText(song.getSinger());
+        holder.favorite_number.setText(String.valueOf(position+1));
         holder.itemView.setOnClickListener(view -> {
             Intent intent = new Intent(context, PlayerActivity.class);
             intent.putExtra("song", song);
@@ -53,9 +54,10 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.Favori
     public static class FavoriteViewHolder extends RecyclerView.ViewHolder {
         TextView songTitle;
         TextView songSinger;
-
+        TextView favorite_number;
         public FavoriteViewHolder(@NonNull View itemView) {
             super(itemView);
+            favorite_number = itemView.findViewById(R.id.favorite_number);
             songTitle = itemView.findViewById(R.id.songTitle);
             songSinger = itemView.findViewById(R.id.songSinger);
         }

@@ -41,6 +41,7 @@ public class SingerAdapter extends RecyclerView.Adapter<SingerAdapter.SingerView
         String singerName = singerNames.get(position);
         List<Song> songs = singerMap.get(singerName);
         holder.tvSingerName.setText(singerName);
+        holder.singer_number.setText(String.valueOf(position+1));
         holder.tvSongCount.setText(String.format("%d songs", songs.size()));
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -63,11 +64,12 @@ public class SingerAdapter extends RecyclerView.Adapter<SingerAdapter.SingerView
     public static class SingerViewHolder extends RecyclerView.ViewHolder {
         TextView tvSingerName;
         TextView tvSongCount;
-
+        TextView singer_number;
         public SingerViewHolder(View itemView) {
             super(itemView);
             tvSingerName = itemView.findViewById(R.id.tv_singer_name);
             tvSongCount = itemView.findViewById(R.id.tv_song_count);
+            singer_number = itemView.findViewById(R.id.singer_number);
         }
     }
 }

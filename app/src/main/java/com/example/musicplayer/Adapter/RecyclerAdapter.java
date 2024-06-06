@@ -13,6 +13,8 @@ import com.example.musicplayer.Entity.Song;
 import com.example.musicplayer.PlayerActivity;
 import com.example.musicplayer.R;
 
+import org.w3c.dom.Text;
+
 import java.util.List;
 
 public class RecyclerAdapter extends RecyclerView.Adapter <RecyclerAdapter.RecyclerViewHolder>{
@@ -31,7 +33,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter <RecyclerAdapter.Recyc
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerViewHolder holder, int position) {
-            holder.BindData(songs.get(position));
+            holder.BindData(songs.get(position),position);
             holder.itemview.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -60,14 +62,18 @@ public class RecyclerAdapter extends RecyclerView.Adapter <RecyclerAdapter.Recyc
         View itemview;
         TextView SongName;
         TextView Singer;
+
+        TextView songNumber;
         public RecyclerViewHolder(@NonNull View itemView) {
             super(itemView);
             this.itemview = itemView;
+            songNumber = itemView.findViewById(R.id.song_number);
             SongName = itemView.findViewById(R.id.name);
             Singer = itemView.findViewById(R.id.singer);
         }
-        void BindData(Song song)
+        void BindData(Song song,int position)
         {
+            songNumber.setText(String.valueOf(position + 1)); // 显示序号，从1开始
             SongName.setText(song.getName());
             Singer.setText(song.getSinger());
         }

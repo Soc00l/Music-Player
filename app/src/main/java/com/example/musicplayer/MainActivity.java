@@ -1,8 +1,10 @@
 package com.example.musicplayer;
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.media.MediaScannerConnection;
@@ -37,6 +39,8 @@ public class MainActivity extends AppCompatActivity  {
     private boolean isServiceBound = false;
 
     private static final int REQUEST_CODE = 1;
+
+    private BroadcastReceiver songChangedReceiver;
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -201,6 +205,17 @@ public class MainActivity extends AppCompatActivity  {
                 startActivity(intent);
             }
         });
+
+        songChangedReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (MusicService.ACTION_SONG_CHANGED.equals(intent.getAction())) {
+                    updateUI();
+                }
+            }
+        };
+        IntentFilter filter = new IntentFilter(MusicService.ACTION_SONG_CHANGED);
+        registerReceiver(songChangedReceiver, filter);
     }
     public void triggerMediaScan(String filePath) {
         MediaScannerConnection.scanFile(getApplicationContext(), new String[]{filePath}, null,

@@ -41,6 +41,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
         String albumName = albumNames.get(position);
         List<Song> songs = albumMap.get(albumName);
         holder.tvAlbumName.setText(albumName);
+        holder.album_number.setText(String.valueOf(position+1));
         holder.tvSongCount.setText(String.format("%d songs", songs.size()));
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -63,8 +64,10 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHol
     public class AlbumViewHolder extends RecyclerView.ViewHolder {
         TextView tvAlbumName;
         TextView tvSongCount;
+        TextView album_number;
         public AlbumViewHolder(View itemView) {
             super(itemView);
+            album_number = itemView.findViewById(R.id.album_number);
             tvAlbumName = itemView.findViewById(R.id.tv_album_name);
             tvSongCount = itemView.findViewById(R.id.tv_song_count);
         }

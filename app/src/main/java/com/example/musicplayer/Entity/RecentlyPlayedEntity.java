@@ -22,10 +22,10 @@ public class RecentlyPlayedEntity {
     }
 
     public static RecentlyPlayedEntity fromSong(Song song, long timestamp) {
-        return new RecentlyPlayedEntity(song.getName(), song.getPath(), song.getSinger(), song.getAlbum(), timestamp);
+        return new RecentlyPlayedEntity(song.getName(),  song.getPath(), song.getSinger(),song.getAlbum(), timestamp);
     }
 
     public Song toSong() {
-        return new Song(name, singer, path);
+        return new Song(name, path, singer, album);
     }
 }

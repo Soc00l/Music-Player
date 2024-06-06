@@ -106,7 +106,7 @@ public class MusicService extends Service {
         }
         return START_NOT_STICKY;
     }
-
+    //通知栏
     @SuppressLint("ForegroundServiceType")
     private void showNotification(Song song) {
         Intent playPauseIntent = new Intent(this, MusicService.class);

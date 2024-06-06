@@ -68,9 +68,12 @@ public class PlayerActivity extends AppCompatActivity {
             isServiceBound = true;
             // 在这里可以调用 MusicService 中的方法，如 playMusic()
             if (song != null) {
-                musicService.playMusic(song);
+                if(musicService.getCurrentSong()==null||!musicService.getCurrentSong().equals(song)) {
+                    Song song1 = musicService.getCurrentSong();
+                    musicService.playMusic(song);
+                }
             }
-            musicService.seekTo(position);
+//            musicService.seekTo(position);
             song = musicService.getCurrentSong();
             UpdateUI();
         }

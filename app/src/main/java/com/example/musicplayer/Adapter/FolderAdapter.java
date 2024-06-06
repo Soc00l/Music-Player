@@ -1,5 +1,6 @@
 package com.example.musicplayer.Adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -43,13 +44,15 @@ public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.FolderView
         return new FolderViewHolder(view);
     }
 
+    @SuppressLint("DefaultLocale")
     @Override
     public void onBindViewHolder(@NonNull FolderViewHolder holder, int position) {
         String folderName = folderNames.get(position);
         List<Song> Songs = folderMap.get(folderName);
+
         holder.tvFolderName.setText(folderName);
         holder.tvSongCount.setText(String.format("%d songs", Songs.size()));
-
+        holder.folderNumber.setText(String.valueOf(position+1));
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -70,9 +73,10 @@ public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.FolderView
     public static class FolderViewHolder extends RecyclerView.ViewHolder {
         TextView tvFolderName;
         TextView tvSongCount;
-
+        TextView folderNumber;
         public FolderViewHolder(View itemView) {
             super(itemView);
+            folderNumber = itemView.findViewById(R.id.folder_number);
             tvFolderName = itemView.findViewById(R.id.tv_folder_name);
             tvSongCount = itemView.findViewById(R.id.tv_folder_count);
         }
