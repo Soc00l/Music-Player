@@ -8,4 +8,8 @@
     <item
         android:id="@+id/action_view_artist"
         android:title="查看歌手" />
+    <item
+        android:id="@+id/action_set_as_ringtone"
+        android:title="设为铃声" />
 </menu>
+

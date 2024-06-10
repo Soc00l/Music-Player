@@ -3,6 +3,7 @@ import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -12,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -20,6 +22,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -29,6 +32,9 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.musicplayer.Entity.Song;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity  {
     boolean IsPause=true;
     private Button  Star;
@@ -37,8 +43,8 @@ public class MainActivity extends AppCompatActivity  {
 
     private  MusicService musicService;
     private boolean isServiceBound = false;
-
-    private static final int REQUEST_CODE = 1;
+    private List<String> permissionsNeeded = new ArrayList<>();
+    private static final int REQUEST_CODE = 100;
 
     private BroadcastReceiver songChangedReceiver;
 
@@ -86,15 +92,105 @@ public class MainActivity extends AppCompatActivity  {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // 权限被授予，加载音乐
+            boolean allGranted = true;
+            boolean someDenied = false;
 
-            } else {
-                // 权限被拒绝，显示提示
-                Toast.makeText(this, "权限被拒绝，无法读取音乐文件。", Toast.LENGTH_SHORT).show();
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    someDenied = true;
+                }
+            }
+
+            if (allGranted) {
+
+            } else if (someDenied) {
+                boolean shouldShowRationale = false;
+                for (String permission : permissions) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                        shouldShowRationale = true;
+                        break;
+                    }
+                }
+                if (shouldShowRationale) {
+                    // Show a message to explain why the permissions are needed and prompt the user to grant them
+                    showPermissionRationaleDialog();
+                } else {
+                    // Permissions were permanently denied, show a message and direct the user to settings
+                    showPermissionsDeniedMessage();
+                }
             }
         }
     }
+    private void showPermissionsDeniedMessage() {
+        new AlertDialog.Builder(this)
+                .setTitle("权限被拒绝")
+                .setMessage("无法设置铃声，因为必要的权限被拒绝。请在设置中手动授予权限。")
+                .setPositiveButton("去设置", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        Uri uri = Uri.fromParts("package", getPackageName(), null);
+                        intent.setData(uri);
+                        startActivity(intent);
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Permission request canceled
+                        Toast.makeText(getApplicationContext(), "无法设置铃声，权限被拒绝", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .create()
+                .show();
+    }
+    private void showPermissionRationaleDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("权限请求")
+                .setMessage("为了设置铃声，需要访问存储的权限。请允许这些权限。")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        requestPermissionsIfNeeded();
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Permission request canceled
+                        Toast.makeText(getApplicationContext(), "无法设置铃声，权限被拒绝", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .create()
+                .show();
+    }
+    private void requestPermissionsIfNeeded() {
+        List<String> permissionsNeeded = new ArrayList<>();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_MEDIA_AUDIO);
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_SETTINGS) != PackageManager.PERMISSION_GRANTED) {
+            permissionsNeeded.add(Manifest.permission.WRITE_SETTINGS);
+        }
+
+        if (!permissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsNeeded.toArray(new String[0]), REQUEST_CODE);
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,22 +205,8 @@ public class MainActivity extends AppCompatActivity  {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_MEDIA_AUDIO}, REQUEST_CODE);
-            } else {
-                // 权限已经被授予，加载音乐
-
-            }
-        } else {
-            // 对于Android 13以下版本，使用旧的权限
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE);
-            } else {
-                // 权限已经被授予，加载音乐
-            }
-        }
+        //请求权限
+        requestPermissionsIfNeeded();
 
         //收藏按钮
         Star = findViewById(R.id.star);
@@ -162,19 +244,24 @@ public class MainActivity extends AppCompatActivity  {
         {
             @Override
             public void onClick(View v) {
-                if(IsPause)
-                {
-                    pause.setImageResource(R.drawable.pause_solid);
-                    IsPause =!IsPause;
-                    musicService.continuePlay();
+                if(musicService==null||musicService.getCurrentSong()==null) {
+                    Toast.makeText(MainActivity.this,"当前没有在播放的歌曲",Toast.LENGTH_SHORT).show();
                 }
-                else {
-                    pause.setImageResource(R.drawable.play_solid);
-                    IsPause =!IsPause;
-                    musicService.pausePlay();
+                else
+                {
+                    if (IsPause) {
+                        pause.setImageResource(R.drawable.pause_solid);
+                        IsPause = !IsPause;
+                        musicService.continuePlay();
+                    } else {
+                        pause.setImageResource(R.drawable.play_solid);
+                        IsPause = !IsPause;
+                        musicService.pausePlay();
+                    }
                 }
             }
         });
+
         //
         TextView Songname = findViewById(R.id.SongName);
         Songname.setOnClickListener(new View.OnClickListener() {

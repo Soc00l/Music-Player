@@ -21,7 +21,7 @@ import java.util.Map;
 public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.AlbumViewHolder> {
 
     private Map<String, List<Song>> albumMap;
-    private Context context;
+    private final Context context;
     private List<String> albumNames;
     public AlbumAdapter(Map<String, List<Song>> albumMap, Context context) {
         this.albumMap = albumMap;

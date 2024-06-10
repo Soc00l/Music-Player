@@ -3,15 +3,19 @@ package com.example.musicplayer;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.text.InputType;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,6 +36,7 @@ import com.example.musicplayer.Entity.Song;
 import com.example.musicplayer.Util.DatabaseHelper;
 import com.example.musicplayer.Util.MusicLoader;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -364,6 +369,12 @@ public class PlayerActivity extends AppCompatActivity {
     private void showPopupMenu(View view) {
         PopupMenu popupMenu = new PopupMenu(this, view);
         popupMenu.getMenuInflater().inflate(R.menu.menu_song_options, popupMenu.getMenu());
+        // 动态设置菜单项的文本
+        MenuItem viewAlbumItem = popupMenu.getMenu().findItem(R.id.action_view_album);
+        viewAlbumItem.setTitle("查看专辑: " + song.getAlbum());
+
+        MenuItem viewArtistItem = popupMenu.getMenu().findItem(R.id.action_view_artist);
+        viewArtistItem.setTitle("查看歌手: " + song.getSinger());
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -380,6 +391,10 @@ public class PlayerActivity extends AppCompatActivity {
                     // 处理“查看歌手”操作
                     viewArtist(song.getSinger());
                     return true;
+                } else if (id == R.id.action_set_as_ringtone) {
+                    // 处理“设为铃声”操作
+                    setMyRingtone(song.getPath());
+                    return true;
                 }
                 return false;
             }
@@ -388,6 +403,25 @@ public class PlayerActivity extends AppCompatActivity {
     }
     private void addToPlaylist(Song song) {
         showAddToPlaylistDialog(song);
+    }
+
+    public void setMyRingtone(String path) {
+        File sdfile = new File(path);
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DATA, sdfile.getAbsolutePath());
+        values.put(MediaStore.MediaColumns.TITLE, sdfile.getName());
+        // 确定音频文件的 MIME 类型，例如 "audio/mpeg" 用于 MP3 文件
+        values.put(MediaStore.MediaColumns.MIME_TYPE, "audio/mpeg");
+        values.put(MediaStore.Audio.Media.IS_RINGTONE, true);
+        values.put(MediaStore.Audio.Media.IS_NOTIFICATION, false);
+        values.put(MediaStore.Audio.Media.IS_ALARM, false);
+        values.put(MediaStore.Audio.Media.IS_MUSIC, false);
+
+        Uri uri = MediaStore.Audio.Media.getContentUriForPath(sdfile.getAbsolutePath());
+        Uri newUri = this.getContentResolver().insert(uri, values);
+        RingtoneManager.setActualDefaultRingtoneUri(this, RingtoneManager.TYPE_RINGTONE, newUri);
+        Toast.makeText(getApplicationContext(), "设置来电铃声成功！", Toast.LENGTH_SHORT).show();
+        System.out.println("setMyRingtone()-----铃声");
     }
 
     private void showAddToPlaylistDialog(Song song) {
