@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -28,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -55,11 +57,9 @@ public class PlayerActivity extends AppCompatActivity {
     private MusicService musicService;
     private boolean isServiceBound = false;
     private  TextView name;
-
     private TextView singer;
-
     private ImageButton isLove;
-
+    private ImageButton pause;
     private BroadcastReceiver songChangedReceiver;
     private int position=0;//保存播放进度
     private AppDatabase appDatabase;
@@ -74,7 +74,6 @@ public class PlayerActivity extends AppCompatActivity {
             // 在这里可以调用 MusicService 中的方法，如 playMusic()
             if (song != null) {
                 if(musicService.getCurrentSong()==null||!musicService.getCurrentSong().equals(song)) {
-                    Song song1 = musicService.getCurrentSong();
                     musicService.playMusic(song);
                 }
             }
@@ -96,6 +95,7 @@ public class PlayerActivity extends AppCompatActivity {
         bindService(service_intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -138,14 +138,20 @@ public class PlayerActivity extends AppCompatActivity {
                     song=  (Song) intent.getParcelableExtra("song");
                     UpdateUI();
                 }
+                if (MusicService.ACTION_PLAY_CHANGED.equals(intent.getAction())) {
+                    UpdatePlay(intent.getBooleanExtra("play",true));
+                }
             }
         };
-        IntentFilter filter = new IntentFilter(MusicService.ACTION_SONG_CHANGED);
-        registerReceiver(songChangedReceiver, filter);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(MusicService.ACTION_SONG_CHANGED);
+        filter.addAction(MusicService.ACTION_PLAY_CHANGED);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            registerReceiver(songChangedReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        }
 
 
-
-    //收起按钮
+        //收起按钮
         ImageButton down = findViewById(R.id.down);
         down.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -183,7 +189,7 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
         //播放按钮
-        ImageButton pause = findViewById(R.id.btnPlayPause);
+        pause = findViewById(R.id.btnPlayPause);
         if(!play)
         {
             pause.setImageResource(R.drawable.play_solid);
@@ -364,6 +370,20 @@ public class PlayerActivity extends AppCompatActivity {
         if(isFavorite)
         {
             isLove.setImageResource(R.drawable.loved);
+        }
+    }
+
+    private void  UpdatePlay(boolean play)
+    {
+        if(play)
+        {
+            this.play = true;
+            pause.setImageResource(R.drawable.pause_solid);
+        }
+        else
+        {
+            this.play = false;
+            pause.setImageResource(R.drawable.play_solid);
         }
     }
     private void showPopupMenu(View view) {

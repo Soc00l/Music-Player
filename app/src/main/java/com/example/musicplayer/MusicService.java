@@ -42,6 +42,7 @@ public class MusicService extends Service {
     private List<Song> SongList;
     public AppDatabase database;
 
+    public static final String ACTION_PLAY_CHANGED = "com.example.musicplayer.ACTION_PLAY_CHANGED";
     public static final String ACTION_SONG_CHANGED = "com.example.musicplayer.ACTION_SONG_CHANGED";
     public static final String ACTION_PLAY_PAUSE = "com.example.musicplayer.ACTION_PLAY_PAUSE";
     public static final String ACTION_OPEN_PLAYER = "com.example.musicplayer.ACTION_OPEN_PLAYER";
@@ -78,8 +79,14 @@ public class MusicService extends Service {
                         case ACTION_PLAY_PAUSE:
                             if (IsPlaying) {
                                 pausePlay();
+                                Intent play_intent = new Intent(ACTION_PLAY_CHANGED);
+                                play_intent.putExtra("play",false);
+                                sendBroadcast(play_intent);
                             } else {
                                 continuePlay();
+                                Intent play_intent = new Intent(ACTION_PLAY_CHANGED);
+                                play_intent.putExtra("play",true);
+                                sendBroadcast(play_intent);
                             }
                             break;
                         case ACTION_PREVIOUS:
@@ -226,9 +233,6 @@ public class MusicService extends Service {
         });
               return  result;
     }
-
-
-
     // 异步检查是否收藏
     public boolean checkIfFavoriteAsync(Song song) {
         return database.songDao().countFavoriteAsync(song.getName(),song.getSinger())>0;

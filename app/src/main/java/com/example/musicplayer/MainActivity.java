@@ -40,10 +40,9 @@ public class MainActivity extends AppCompatActivity  {
     private Button  Star;
     private Button Local;
     private Button Recent;
-
+    private  ImageButton pause;
     private  MusicService musicService;
     private boolean isServiceBound = false;
-    private List<String> permissionsNeeded = new ArrayList<>();
     private static final int REQUEST_CODE = 100;
 
     private BroadcastReceiver songChangedReceiver;
@@ -117,7 +116,7 @@ public class MainActivity extends AppCompatActivity  {
                     showPermissionRationaleDialog();
                 } else {
                     // Permissions were permanently denied, show a message and direct the user to settings
-                    showPermissionsDeniedMessage();
+//                    showPermissionsDeniedMessage();
                 }
             }
         }
@@ -239,7 +238,7 @@ public class MainActivity extends AppCompatActivity  {
             }
         });
         //暂停按钮
-        ImageButton pause = findViewById(R.id.pause);
+        pause = findViewById(R.id.pause);
         pause.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -299,9 +298,14 @@ public class MainActivity extends AppCompatActivity  {
                 if (MusicService.ACTION_SONG_CHANGED.equals(intent.getAction())) {
                     updateUI();
                 }
+                if (MusicService.ACTION_PLAY_CHANGED.equals(intent.getAction())) {
+                    UpdatePlay(intent.getBooleanExtra("play",true));
+                }
             }
         };
-        IntentFilter filter = new IntentFilter(MusicService.ACTION_SONG_CHANGED);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(MusicService.ACTION_SONG_CHANGED);
+        filter.addAction(MusicService.ACTION_PLAY_CHANGED);
         registerReceiver(songChangedReceiver, filter);
     }
     public void triggerMediaScan(String filePath) {
@@ -313,6 +317,17 @@ public class MainActivity extends AppCompatActivity  {
                     }
                 });
     }
-
-
+    public void UpdatePlay(boolean play)
+    {
+        if(play)
+        {
+               this.IsPause = false;
+               pause.setImageResource(R.drawable.pause_solid);
+        }
+        else
+        {
+               this.IsPause = true;
+               pause.setImageResource(R.drawable.play_solid);
+        }
+    }
 }
